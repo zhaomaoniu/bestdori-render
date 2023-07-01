@@ -14,7 +14,7 @@ LANE_RANGE: tuple = (None, None)  # 轨道范围，为`(None, None)`时将自动
 LANE_NUM: int = None  # 轨道数，为`None`时将自动计算谱面轨道数
 
 # 字体设置
-FONT: ImageFont.ImageFont = ImageFont.truetype("fonts/TT-Shin Go M.ttf", size=24)  # 绘制BPM、时长和物量的字体
+FONT: ImageFont.ImageFont = ImageFont.truetype("fonts/TT-Shin Go M.ttf", size=24)  # 绘制BPM和时长的字体
 
 # 颜色设置
 FRAME_COLOR: tuple = (0, 77, 77, 255)  # 轨道边框颜色

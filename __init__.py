@@ -1,3 +1,5 @@
+import json
+
 from PIL import Image, ImageDraw
 
 from utils import utils
@@ -35,3 +37,9 @@ def render(data: dict) -> Image.Image:
     bg = Image.new("RGBA", result.size, BG_COLOR)
 
     return utils.paste(bg, result, (0, 0))
+
+
+with open("expert.json", "r", encoding="UTF-8") as f:
+    data = json.load(f)
+
+render(data).save("temp.png")

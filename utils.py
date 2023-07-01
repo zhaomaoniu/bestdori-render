@@ -1,4 +1,3 @@
-import math
 from PIL import Image, ImageDraw
 
 from config import *
@@ -178,6 +177,10 @@ class Utils:
     
     def preprocess_chart(self, chart: list):
         '''预处理谱面'''
+        for data in chart:
+            if data["type"] == "Long":
+                data["type"] = "Slide"
+
         timepoints = self.get_bpm_timepoints(chart)
         
         for idx, data in enumerate(chart):
