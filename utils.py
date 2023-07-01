@@ -42,6 +42,7 @@ class Utils:
             'flick' : flick.convert("RGBA").resize((self.note_size[0], int(flick.height / flick.width * self.note_size[0])), Image.Resampling.BICUBIC),
             'tap' : Image.open(f"resources/{SKIN}/tap.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
             'tap_white' : Image.open(f"resources/{SKIN}/tap_white.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'tap_skill' : Image.open(f"resources/{SKIN}/tap_skill.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
             'slide' : Image.open(f"resources/{SKIN}/slide.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
             'sep': Image.open(f"resources/{SKIN}/sep.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
             'long': Image.open(f"resources/{SKIN}/long.png").convert("RGBA").resize((self.note_size[0], 1), Image.Resampling.BICUBIC),
@@ -101,14 +102,16 @@ class Utils:
     def get_lanes(self, height: int, chart: list):
         '''获取轨道长图'''
         def _round(num):
+            # 舍5进6
             if num >= 0:
                 return int(num + 0.499999)
             else:
                 return int(num - 0.499999)
 
         if self.lane_num is None or self.lane_range is None:
+            # 计算轨道范围和数量
             simplified_chart = []
-            for data in chart:
+            for data in chart: # 将slide提到data层次，方便计算
                 if data["type"] == "Single" or data["type"] == "Directional":
                     simplified_chart.append(data)
 
@@ -132,12 +135,14 @@ class Utils:
         lanes = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(lanes)
 
+        # 绘制左frame
         draw.rectangle((0, 0, self.frame_width, height), fill=self.frame_color)
         draw.rectangle((self.frame_width // 2, 0, self.frame_width, height), fill=self._get_lighter_color(self.frame_color))
-
+        # 右frame
         draw.rectangle((width - self.frame_width, 0, width, height), fill=self.frame_color)
         draw.rectangle((width - self.frame_width, 0, width - self.frame_width // 2, height), fill=self._get_lighter_color(self.frame_color))
 
+        # 绘制轨道分隔线
         x = self.frame_width - self.sep_line_width // 2
         for i in range(0, lane_num + 1):
             draw.rectangle((x, 0, x + self.sep_line_width, height), self.sep_line_color)
@@ -150,8 +155,9 @@ class Utils:
     
     def get_bpm_timepoints(self, chart: list):
         '''获取谱面中所有BPM的timepoint'''
-        timepoints = list(filter(lambda n: n['type'] == 'BPM', chart))
-        timepoints = sorted(timepoints, key=lambda x: x.get("beat", float('inf')))
+        # 感谢灵喵
+        timepoints = list(filter(lambda n: n['type'] == 'BPM', chart)) # 筛选出类型为BPM的数据
+        timepoints = sorted(timepoints, key=lambda x: x.get("beat", float('inf'))) # 按beat排序
 
         for i, data in enumerate(timepoints):
             if i == 0:
@@ -162,7 +168,7 @@ class Utils:
         return timepoints
 
     def get_timepoint_base(self, beat, timepoints):
-        '''获取指定beat前一个timepoint'''
+        '''获取指定beat的前一个timepoint'''
         lastBPM = timepoints[0]
         for tp in timepoints:
             if tp['beat'] > beat:
@@ -178,12 +184,15 @@ class Utils:
     def preprocess_chart(self, chart: list):
         '''预处理谱面'''
         for data in chart:
+            # long 和 slide 在视觉上无异，这里处理成 slide
             if data["type"] == "Long":
                 data["type"] = "Slide"
 
         timepoints = self.get_bpm_timepoints(chart)
+        # BPM 更换时间
         
         for idx, data in enumerate(chart):
+            # 计算时间和y坐标
             note_type = data["type"]
             
             if note_type == "BPM" or note_type == "Single" or note_type == "Directional":
@@ -199,23 +208,25 @@ class Utils:
     
     def corrent_chart(self, chart: dict, lane_range: tuple):
         '''将负轨修正'''
-        if lane_range[0] < 0:
-            lane_offset = -lane_range[0]
-
-            for idx, data in enumerate(chart):
-                note_type = data["type"]
-
-                if note_type == "Single" or note_type == "Directional":
-                    chart[idx]["lane"] += lane_offset
-                
-                elif note_type == "Slide":
-                    for idx_c in range(len(data["connections"])):
-                        chart[idx]["connections"][idx_c]["lane"] += lane_offset
+        if lane_range[0] >= 0:
+            # 没有负轨，不需修正
             return chart
+
+        lane_offset = -lane_range[0] # 轨道偏移数
+
+        for idx, data in enumerate(chart):
+            note_type = data["type"]
+
+            if note_type == "Single" or note_type == "Directional":
+                chart[idx]["lane"] += lane_offset
+            
+            elif note_type == "Slide":
+                for idx_c in range(len(data["connections"])):
+                    chart[idx]["connections"][idx_c]["lane"] += lane_offset
         return chart
 
     def simplify_chart(self, chart: dict):
-        '''简化谱面'''
+        '''简化谱面，只保留tap, flick, directional, slide，用于计算双压'''
         simplified_chart = []
         for data in chart:
             if data["type"] == "Single" or data["type"] == "Directional":
@@ -234,7 +245,7 @@ class Utils:
         return simplified_chart
     
     def _get_tapable_notes_data(self, chart: dict):
-        '''获取计入物量的note数据'''
+        '''获取计入物量的note数据，用于绘制物量'''
         simplified_chart = []
         for data in chart:
             if data["type"] == "Single" or data["type"] == "Directional":
@@ -256,7 +267,8 @@ class Utils:
         max_beat = max([d.get("beat") for d in preprocessed_chart if isinstance(d.get("beat"), (int, float))] +
                     [c.get("beat") for d in preprocessed_chart for c in d.get("connections", []) if isinstance(c.get("beat"), (int, float))])
 
-        data= next((d for d in preprocessed_chart if d.get("beat") == max_beat or any(c.get("beat") == max_beat for c in d.get("connections", []))), None)
+        data = next((d for d in preprocessed_chart if d.get("beat") == max_beat or any(c.get("beat") == max_beat for c in d.get("connections", []))), None)
+        # 最后一个note
 
         if data["type"] == "BPM" or data["type"] == "Single" or data["type"] == "Directional":
             min_height = data["pixel"] + self.skin["tap"].height
@@ -266,6 +278,7 @@ class Utils:
         return int((min_height // self.slice_height + 1) * self.slice_height)
 
     def get_bpm_data(self, chart: dict):
+        '''获取BPM数据，用于绘制BPM文本'''
         bpm_data = []
         for data in chart:
             if data["type"] == "BPM":
@@ -278,19 +291,19 @@ class Utils:
 
     def draw_measure_lines(self, bpm_data: dict, draw: ImageDraw.ImageDraw, width: int, height: int):
         '''绘制小节线'''
-        bpm_data = sorted(bpm_data, key=lambda x: x.get("beat", float('inf')))
+        bpm_data = sorted(bpm_data, key=lambda x: x.get("beat", float('inf'))) # 按beat排序
         for idx, data in enumerate(bpm_data):
             pixel_per_beat = utils.get_second(data["bpm"], 1) * self.pps
             y = data["pixel"]
             length = bpm_data[idx + 1]["pixel"] - data["pixel"] if idx + 1 != len(bpm_data) else height - data["pixel"]
-            if int(length / pixel_per_beat) + 1 > 0:
+            if int(length / pixel_per_beat) + 1 > 0: # 属于该BPM范围的拍数 > 0
                 for i in range(int(length / pixel_per_beat) + 1):
                     y1 = int(height - (y + self.bpm_line_width // 2)) if int(height - (y + self.bpm_line_width // 2)) != height else height - self.bpm_line_width
                     y2 = int(height - (y - self.bpm_line_width // 2)) if int(height - (y - self.bpm_line_width // 2)) != height else height
                     draw.rectangle((self.x_sep + self.frame_width, y1, width - self.frame_width - self.x_sep, y2), self.bpm_line_color if i != 0 else self.bpm_line_light_color)
                     y += pixel_per_beat
-            else:
-                for i in range(int(length / pixel_per_beat) + 1, 0, -1):
+            else: # 属于该BPM范围的拍数 < 0
+                for i in range(int(length / pixel_per_beat) + 1, 0, -1): # 负负得正
                     y1 = int(height - (y + self.bpm_line_width // 2)) if int(height - (y + self.bpm_line_width // 2)) != height else height - self.bpm_line_width
                     y2 = int(height - (y - self.bpm_line_width // 2)) if int(height - (y - self.bpm_line_width // 2)) != height else height
                     draw.rectangle((self.x_sep + self.frame_width, y1, width - self.frame_width - self.x_sep, y2), self.bpm_line_color if i != 0 else self.bpm_line_light_color)
@@ -309,21 +322,32 @@ class Utils:
     def draw_notes(self, chart: dict, chart_img: Image.Image, height: int):
         '''绘制note'''
         for data in chart:
+            if data.get("hidden", False) is True:
+                pass
+
             if data["type"] == "Single":
-                if data.get("hidden", False) is True:
-                    pass
+                # tap/flick
                 note_type = "flick" if data.get("flick") is True else "tap"
                 if note_type == "tap":
                     if self.blue_white_tap and not (data["beat"] % 1 == 0 or data["beat"] % 0.5 == 0):
+                        # 蓝白键
                         note_type = "tap_white"
+                    
+                    if data.get("skill", False):
+                        # 技能键
+                        note_type = "tap_skill"
+
                     chart_img.paste(self.skin[note_type], (self.x_sep + int(self.x_offset + (self.frame_width + (data["lane"] + 0.5) * self.lane_width - self.skin[note_type].width // 2) - self.sep_line_width), height - (data["pixel"] + self.skin[note_type].height // 2)), self.skin[note_type])
                 else:
+                    # flick
                     chart_img.paste(self.skin[note_type], (self.x_sep + int(self.x_offset + (self.frame_width + (data["lane"] + 0.5) * self.lane_width - self.skin[note_type].width // 2) - self.sep_line_width), height - (data["pixel"] + self.skin[note_type].height // 2) - self.flick_offset), self.skin[note_type])
             
             elif data["type"] == "Directional":
-                note_type = data["direction"].lower()
-                note_symbol = {"left": -1, "right": 1}[note_type]
+                # 方向键
+                note_type = data["direction"].lower() # 小写
+                note_symbol = {"left": -1, "right": 1}[note_type] # 用于计算note偏移方向
                 note_img = self.skin[note_type]
+
                 for i in range(data["width"]):
                     x = self.x_offset + int(self.frame_width + (data["lane"] + 0.5) * self.lane_width - note_img.width // 2) + self.lane_width * i * note_symbol + self.directional_offset * note_symbol - self.sep_line_width
                     y = int(height - (data["pixel"] + note_img.height // 2))
@@ -331,10 +355,12 @@ class Utils:
                 chart_img.paste(self.skin[f"{note_type}_arrow"], (self.x_sep + int(x + note_symbol * ((note_img.width if note_symbol == 1 else self.skin[f"{note_type}_arrow"].width) + self.directional_arrow_offset)), y), self.skin[f"{note_type}_arrow"])
 
             elif data["type"] == "Slide":
+                # slide / long
                 for idx_c, data_c in enumerate(data["connections"]):
                     hidden = data_c.get("hidden", False)
 
                     if idx_c != len(data["connections"]) - 1:
+                        # 绘制绿条
                         note_type = "long"
                         x1 = self.x_offset + (self.frame_width + (data_c["lane"] + 0.5) * self.lane_width - self.skin[note_type].width / 2)
                         x2 = self.x_offset + (self.frame_width + (data["connections"][idx_c + 1]["lane"] + 0.5) * self.lane_width - self.skin[note_type].width / 2)
@@ -347,16 +373,22 @@ class Utils:
                             chart_img.paste(self.skin[note_type], (self.x_sep + int(x) - self.sep_line_width, height - int(y)), self.skin[note_type])
 
                     if idx_c != 0 and idx_c != len(data["connections"]) - 1:
+                        # 绘制绿条的间隔
                         note_type = "sep"
                         if not hidden:
                             chart_img.paste(self.skin[note_type], (self.x_sep + self.x_offset + int(self.frame_width + (data_c["lane"] + 0.5) * self.lane_width - self.skin[note_type].width // 2) - self.sep_line_width, height - (data_c["pixel"] + self.skin[note_type].height // 2)), self.skin[note_type])
 
                     if idx_c == 0 or idx_c == len(data["connections"]) - 1:
+                        # 绘制绿条的首尾
                         note_type = "flick" if data_c.get("flick") is True else "slide"
-                        if data_c.get("hidden") is not False:
-                            if note_type == "slide":
+
+                        if data_c.get("skill", False):
+                            note_type = "tap_skill"
+
+                        if not hidden:
+                            if note_type == "slide" or note_type == "tap_skill":
                                 chart_img.paste(self.skin[note_type], (self.x_sep + self.x_offset + int(self.frame_width + (data_c["lane"] + 0.5) * self.lane_width - self.skin[note_type].width // 2) - self.sep_line_width, height - (data_c["pixel"] + self.skin[note_type].height // 2)), self.skin[note_type])
-                            else:
+                            elif note_type == "flick":
                                 chart_img.paste(self.skin[note_type], (self.x_sep + self.x_offset + int(self.frame_width + (data_c["lane"] + 0.5) * self.lane_width - self.skin[note_type].width // 2) - self.sep_line_width, height - (data_c["pixel"] + self.skin[note_type].height // 2) - self.flick_offset), self.skin[note_type])
 
     def draw_bpm_texts(self, bpm_data: dict, draw: ImageDraw.ImageDraw, width: int, height: int):
