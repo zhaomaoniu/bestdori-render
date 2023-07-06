@@ -414,11 +414,11 @@ class Utils:
         '''绘制物量信息'''
         simplified_chart = self._get_tapable_notes_data(chart)
         simplified_chart = sorted(simplified_chart, key=lambda x: x.get("beat", float('inf')))
-        for num in range(50, len(simplified_chart) + 1, 50):
+        for num in range(49, len(simplified_chart), 50):
             data = simplified_chart[num]
             x = width - self.x_sep
             y = int(height - data["pixel"] - self.font.getbbox("114514")[3] / 2)
-            draw.text((x, y), str(num), self.note_num_color, self.font)
+            draw.text((x, y), str(num + 1), self.note_num_color, self.font)
 
     def process_image(self, original_image: Image.Image):   
         '''切割图像到横向'''     

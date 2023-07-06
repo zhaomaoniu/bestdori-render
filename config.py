@@ -5,7 +5,7 @@ EXPECT_HEIGHT: int = 1500  # 期望图像高度
 BG_COLOR: tuple = (16, 16, 16)  # 背景颜色
 
 # 分割设置
-SLICE_HEIGHT: int = 3360 + 24  # 分割轨道的长度  # 这里最好是 `PPS` 的倍数 ± `NOTE_SIZE[2]`，否则note很有可能被切开
+SLICE_HEIGHT: int = 4800 + 24  # 分割轨道的长度  # 这里最好是 `PPS` 的倍数 ± `NOTE_SIZE[2]`，否则note很有可能被切开
 X_SEP: int = 80  # 轨道旁的留空宽度
 FRAME_WIDTH: int = 16  # 轨道边框宽度
 SEP_LINE_WIDTH: int = 4  # 轨道分割线宽度
