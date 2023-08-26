@@ -111,12 +111,18 @@ class Utils:
         if self.lane_num is None or self.lane_range is None:
             # 计算轨道范围和数量
             simplified_chart = []
-            for data in chart: # 将slide提到data层次，方便计算
+            for data in chart: # 将slide提到data层次，方便计算，同时忽略所有超过 -2 轨和 9 轨的音符
                 if data["type"] == "Single" or data["type"] == "Directional":
+                    if data["lane"] < -2 or data["lane"] > 9:
+                        continue
+                    
                     simplified_chart.append(data)
 
                 elif data["type"] == "Slide":
                     for data_c in data["connections"]:
+                        if data_c["lane"] < -2 or data_c["lane"] > 9:
+                            continue
+                        
                         simplified_chart.append({
                             "beat": data_c["beat"],
                             "lane": data_c["lane"],
@@ -131,6 +137,10 @@ class Utils:
             lane_range = self.lane_range
             lane_num = self.lane_num
 
+        # 轨道数不能少于7
+        if lane_num < 7:
+            lane_num = 7
+        
         width = self.frame_width * 2 + self.lane_width * lane_num
         lanes = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(lanes)
@@ -218,10 +228,16 @@ class Utils:
             note_type = data["type"]
 
             if note_type == "Single" or note_type == "Directional":
+                if data["lane"] < -2 or data["lane"] > 9: # 忽略掉超范围音符
+                    continue
+                
                 chart[idx]["lane"] += lane_offset
             
             elif note_type == "Slide":
                 for idx_c in range(len(data["connections"])):
+                    if data["connections"][idx_c]["lane"] < -2 or data["connections"][idx_c]["lane"] > 9: # 忽略掉超范围音符
+                        continue
+                
                     chart[idx]["connections"][idx_c]["lane"] += lane_offset
         return chart
 
