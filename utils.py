@@ -17,7 +17,7 @@ class Utils:
         self.bpm_line_color = BPM_LINE_COLOR
         self.bpm_line_light_color = BPM_LINE_LIGHT_COLOR
         self.x_offset = X_OFFSET
-        self.x_sep = X_SEP
+        self.x_sep = X_SEP * 2
         self.double_beat_line_color = DOUBLE_BEAT_LINE_COLOR
         self.double_beat_line_width = DOUBLE_BEAT_LINE_WIDTH
         self.font = FONT
@@ -111,12 +111,18 @@ class Utils:
         if self.lane_num is None or self.lane_range is None:
             # 计算轨道范围和数量
             simplified_chart = []
-            for data in chart: # 将slide提到data层次，方便计算
+            for data in chart: # 将slide提到data层次，方便计算，同时忽略所有超过 -2 轨和 9 轨的音符
                 if data["type"] == "Single" or data["type"] == "Directional":
+                    if data["lane"] < -2 or data["lane"] > 8:
+                        continue
+                    
                     simplified_chart.append(data)
 
                 elif data["type"] == "Slide":
                     for data_c in data["connections"]:
+                        if data_c["lane"] < -2 or data_c["lane"] > 8:
+                            continue
+                        
                         simplified_chart.append({
                             "beat": data_c["beat"],
                             "lane": data_c["lane"],
@@ -131,6 +137,10 @@ class Utils:
             lane_range = self.lane_range
             lane_num = self.lane_num
 
+        # 轨道数不能少于7
+        if lane_num < 7:
+            lane_num = 7
+        
         width = self.frame_width * 2 + self.lane_width * lane_num
         lanes = Image.new("RGBA", (width, height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(lanes)
@@ -144,11 +154,11 @@ class Utils:
 
         # 绘制轨道分隔线
         x = self.frame_width - self.sep_line_width // 2
-        for i in range(0, lane_num + 1):
+        for _ in range(0, lane_num + 1):
             draw.rectangle((x, 0, x + self.sep_line_width, height), self.sep_line_color)
             x += self.lane_width
 
-        result = Image.new("RGBA", (width + self.x_sep * 2, height), self.bg_color)
+        result = Image.new("RGBA", (width + self.x_sep * 2, height), (0, 0, 0, 0))
         result = self.paste(result, lanes, (self.x_sep, 0))
 
         return result, lane_range
@@ -218,10 +228,16 @@ class Utils:
             note_type = data["type"]
 
             if note_type == "Single" or note_type == "Directional":
+                if data["lane"] < -2 or data["lane"] > 8: # 忽略掉超范围音符
+                    continue
+                
                 chart[idx]["lane"] += lane_offset
             
             elif note_type == "Slide":
                 for idx_c in range(len(data["connections"])):
+                    if data["connections"][idx_c]["lane"] < -2 or data["connections"][idx_c]["lane"] > 8: # 忽略掉超范围音符
+                        continue
+                
                     chart[idx]["connections"][idx_c]["lane"] += lane_offset
         return chart
 
@@ -436,11 +452,11 @@ class Utils:
             slices.append(slice_image)
 
         # 从右向左拼接切片图像
-        combined_image = Image.new("RGBA", (width * num_slices, self.slice_height))
-        x_offset = width * num_slices
+        combined_image = Image.new("RGBA", ((width - self.x_sep) * num_slices, self.slice_height))
+        x_offset = combined_image.width - self.x_sep // 2
         for i, slice_image in enumerate(slices):
-            x_offset -= width
-            combined_image.paste(slice_image, (x_offset, 0))
+            x_offset -= width - self.x_sep
+            combined_image = self.paste(combined_image, slice_image, (x_offset, 0))
 
         return combined_image
     
