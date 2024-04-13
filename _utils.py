@@ -1,66 +1,73 @@
+from fractions import Fraction
+from typing import Any, Tuple, Optional, TypeAlias
+
 from PIL import Image, ImageDraw
 
 from config import *
 
+_NoteType: TypeAlias = dict[str, Any]
+_ChartType: TypeAlias = list[_NoteType]
 
 class Utils:
     def __init__(self) -> None:
-        self.frame_color = FRAME_COLOR
-        self.frame_width = FRAME_WIDTH
-        self.sep_line_color = SEP_LINE_COLOR
-        self.sep_line_width = SEP_LINE_WIDTH
-        self.color_light_value = COLOR_LIGHT_VALUE
-        self.lane_width = LANE_WIDTH
-        self.pps = PPS
-        self.note_size = NOTE_SIZE
-        self.bpm_line_width = BPM_LINE_WIDTH
-        self.bpm_line_color = BPM_LINE_COLOR
-        self.bpm_line_light_color = BPM_LINE_LIGHT_COLOR
-        self.x_offset = X_OFFSET
-        self.x_sep = X_SEP * 2
-        self.double_beat_line_color = DOUBLE_BEAT_LINE_COLOR
-        self.double_beat_line_width = DOUBLE_BEAT_LINE_WIDTH
-        self.font = FONT
-        self.bpm_text_color = BPM_TEXT_COLOR
-        self.time_text_color = TIME_TEXT_COLOR
-        self.flick_offset = FLICK_OFFSET
-        self.slice_height = SLICE_HEIGHT
-        self.directional_offset = DIRECTIONAL_OFFSET
-        self.directional_arrow_offset = DIRECTIONAL_ARROW_OFFSET
-        self.bg_color = BG_COLOR
-        self.note_num_color = NOTE_NUM_COLOR
-        self.blue_white_tap = BLUE_WHITE_TAP
-        self.lane_num = LANE_NUM
-        self.lane_range = LANE_RANGE
+        self.frame_color = frame_color
+        self.frame_width = frame_width
+        self.sep_line_color = sep_line_color
+        self.sep_line_width = sep_line_width
+        self.color_light_value = color_light_value
+        self.lane_width = line_width
+        self.pps = pps
+        self.note_size = note_size
+        self.bpm_line_width = bpm_line_width
+        self.bpm_line_color = bpm_line_color
+        self.bpm_line_light_color = bpm_line_light_color
+        self.x_offset = x_offset
+        self.x_sep = x_sep * 2
+        self.double_beat_line_color = double_beat_line_color
+        self.double_beat_line_width = double_beat_line_width
+        self.font = font
+        self.bpm_text_color = bpm_text_color
+        self.time_text_color = time_text_color
+        self.flick_offset = flick_offset
+        self.slice_height = slice_height
+        self.directional_offset = directional_offset
+        self.directional_arrow_offset = directional_arrow_offset
+        self.bg_color = bg_color
+        self.note_num_color = note_num_color
+        self.blue_white_tap = blue_white_tap
+        self.lane_num = lane_num
+        self.lane_range = lane_range
 
-        flick = Image.open(f"resources/{SKIN}/flick.png")
-        left = Image.open(f"resources/{SKIN}/left.png")
-        right = Image.open(f"resources/{SKIN}/right.png")
-        left_arrow = Image.open(f"resources/{SKIN}/left_arrow.png")
-        right_arrow = Image.open(f"resources/{SKIN}/right_arrow.png")
+        flick = Image.open(f"resources/{skin}/flick.png")
+        left = Image.open(f"resources/{skin}/left.png")
+        right = Image.open(f"resources/{skin}/right.png")
+        left_arrow = Image.open(f"resources/{skin}/left_arrow.png")
+        right_arrow = Image.open(f"resources/{skin}/right_arrow.png")
         self.skin = {
             'flick' : flick.convert("RGBA").resize((self.note_size[0], int(flick.height / flick.width * self.note_size[0])), Image.Resampling.BICUBIC),
-            'tap' : Image.open(f"resources/{SKIN}/tap.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'tap_white' : Image.open(f"resources/{SKIN}/tap_white.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'tap_skill' : Image.open(f"resources/{SKIN}/tap_skill.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'slide' : Image.open(f"resources/{SKIN}/slide.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'sep': Image.open(f"resources/{SKIN}/sep.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'long': Image.open(f"resources/{SKIN}/long.png").convert("RGBA").resize((self.note_size[0], 1), Image.Resampling.BICUBIC),
+            'tap' : Image.open(f"resources/{skin}/tap.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'tap_white' : Image.open(f"resources/{skin}/tap_white.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'tap_skill' : Image.open(f"resources/{skin}/tap_skill.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'slide' : Image.open(f"resources/{skin}/slide.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'sep': Image.open(f"resources/{skin}/sep.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'long': Image.open(f"resources/{skin}/long.png").convert("RGBA").resize((self.note_size[0], 1), Image.Resampling.BICUBIC),
             'left': left.convert("RGBA").resize((self.note_size[0], int(left.height / left.width * self.note_size[0])), Image.Resampling.BICUBIC),
             'right': right.convert("RGBA").resize((self.note_size[0], int(right.height / right.width * self.note_size[0])), Image.Resampling.BICUBIC),
             'left_arrow': left_arrow.convert("RGBA").resize((int(left_arrow.width / left_arrow.height * (left.height / left.width * self.note_size[0])), int(left.height / left.width * self.note_size[0])), Image.Resampling.BICUBIC),
             'right_arrow': right_arrow.convert("RGBA").resize((int(right_arrow.width / right_arrow.height * (right.height / right.width * self.note_size[0])), int(right.height / right.width * self.note_size[0])), Image.Resampling.BICUBIC),
         }
 
-    def paste(self, background: Image.Image, overlay: Image.Image, box: tuple) -> Image.Image:
+    def paste(self, background: Image.Image, overlay: Image.Image, box: Tuple[int, int]) -> Image.Image:
         """
-        - 将 `overlay` 以 `alpha` 相加的方式粘贴到 `background` 的指定位置上
+        将 `overlay` 以 `alpha` 相加的方式粘贴到 `background` 的指定位置上
 
-        :param background: 背景图片
-        :param overlay: 需要粘贴的图片
-        :param box: 粘贴图片在背景图片的左上角位置
+        参数:
+            background (Image.Image): 背景图片
+            overlay (Image.Image): 要粘贴的图片
+            box (Tuple[int, int]): 粘贴的位置
 
-        :return: 返回合并后的图片
+        返回:
+            Image.Image: 合并后的图片
         """
         if background.mode != "RGBA" or overlay.mode != "RGBA":
             raise TypeError("The input image must be in RGBA mode.")
@@ -99,7 +106,7 @@ class Utils:
             return (r + self.color_light_value, g + self.color_light_value, b + self.color_light_value)
         return (r + self.color_light_value, g + self.color_light_value, b + self.color_light_value, a)
 
-    def get_lanes(self, height: int, chart: list):
+    def get_lanes(self, height: int, chart: _ChartType) -> Tuple[Image.Image, Tuple[Optional[int], Optional[int]]]:
         '''获取轨道长图'''
         def _round(num):
             # 舍5进6
@@ -112,7 +119,7 @@ class Utils:
             # 计算轨道范围和数量
             simplified_chart = []
             for data in chart: # 将slide提到data层次，方便计算，同时忽略所有超过 -2 轨和 9 轨的音符
-                if data["type"] == "Single" or data["type"] == "Directional":
+                if data['type'] == "Single" or data["type"] == "Directional":
                     if data["lane"] < -2 or data["lane"] > 8:
                         continue
                     
@@ -163,10 +170,10 @@ class Utils:
 
         return result, lane_range
     
-    def get_bpm_timepoints(self, chart: list):
+    def get_bpm_timepoints(self, chart: _ChartType):
         '''获取谱面中所有BPM的timepoint'''
         # 感谢灵喵
-        timepoints = list(filter(lambda n: n['type'] == 'BPM', chart)) # 筛选出类型为BPM的数据
+        timepoints: _ChartType = list(filter(lambda n: n['type'] == 'BPM', chart)) # 筛选出类型为BPM的数据
         timepoints = sorted(timepoints, key=lambda x: x.get("beat", float('inf'))) # 按beat排序
 
         for i, data in enumerate(timepoints):
@@ -179,19 +186,19 @@ class Utils:
 
     def get_timepoint_base(self, beat, timepoints):
         '''获取指定beat的前一个timepoint'''
-        lastBPM = timepoints[0]
+        last_bpm = timepoints[0]
         for tp in timepoints:
             if tp['beat'] > beat:
                 break
-            lastBPM = tp
-        return lastBPM
+            last_bpm = tp
+        return last_bpm
     
     def get_note_time(self, beat, timepoints):
         '''获取note的绝对时间'''
         timepoint = self.get_timepoint_base(beat, timepoints)
         return timepoint["time"] + (beat - timepoint["beat"]) * (60 / timepoint["bpm"])
     
-    def preprocess_chart(self, chart: list):
+    def preprocess_chart(self, chart: _ChartType) -> _ChartType:
         '''预处理谱面'''
         for data in chart:
             # long 和 slide 在视觉上无异，这里处理成 slide
@@ -216,9 +223,9 @@ class Utils:
         
         return chart
     
-    def corrent_chart(self, chart: dict, lane_range: tuple):
+    def corrent_chart(self, chart: _ChartType, lane_range: Tuple[Optional[int], Optional[int]]):
         '''将负轨修正'''
-        if lane_range[0] >= 0:
+        if lane_range[0] is None or lane_range[0] >= 0:
             # 没有负轨，不需修正
             return chart
 
@@ -241,7 +248,7 @@ class Utils:
                     chart[idx]["connections"][idx_c]["lane"] += lane_offset
         return chart
 
-    def simplify_chart(self, chart: dict):
+    def simplify_chart(self, chart: _ChartType) -> _ChartType:
         '''简化谱面，只保留tap, flick, directional, slide，用于计算双压'''
         simplified_chart = []
         for data in chart:
@@ -260,7 +267,7 @@ class Utils:
                             })
         return simplified_chart
     
-    def _get_tapable_notes_data(self, chart: dict):
+    def _get_tapable_notes_data(self, chart: _ChartType) -> _ChartType:
         '''获取计入物量的note数据，用于绘制物量'''
         simplified_chart = []
         for data in chart:
@@ -278,12 +285,62 @@ class Utils:
                         })
         return simplified_chart
     
-    def get_height(self, preprocessed_chart: list) -> int:
+    def _fix_beats_data(self, chart: _ChartType) -> _ChartType:
+        '''修正负 BPM 带来的 Beat 错误'''
+        plain_chart: _ChartType = []
+        for note in chart:
+            if note['type'] == 'Slide':
+                for index, connection in enumerate(note['connections']):
+                    if index == 0 or index == len(note['connections']) - 1:
+                        _type = 'Slide'
+                    else:
+                        _type = 'Connection'
+                    if not connection.get('hidden', False):
+                        plain_chart.append({
+                            'beat': connection['beat'],
+                            'lane': connection['lane'],
+                            'type': _type,
+                            'pixel': connection['pixel']
+                        })
+            else:
+                plain_chart.append(note.copy())
+        plain_chart = sorted(plain_chart, key=lambda x: x.get('beat', float('inf')))
+        
+        negative = False
+        last_beat = 0
+        real_beat = 0
+        result: _ChartType = []
+        for index, note in enumerate(plain_chart):
+            if note['type'] == 'BPM':
+                if note.get('bpm', 0) < 0:
+                    negative = True
+                else:
+                    negative = False
+            
+            _beat: float = note.get('beat', 0)
+            if negative:
+                real_beat -= (_beat - last_beat)
+                last_beat = _beat
+                note['beat'] = real_beat
+            else:
+                real_beat += (_beat - last_beat)
+                last_beat = _beat
+                note['beat'] = real_beat
+            if note['type'] != 'BPM':
+                result.append(note.copy())
+        
+        result = sorted(result, key=lambda x: x.get('beat', float('inf')), reverse=True)
+        return result
+    
+    def get_height(self, preprocessed_chart: _ChartType) -> int:
         '''获取谱面图片高度'''
-        max_beat = max([d.get("beat") for d in preprocessed_chart if isinstance(d.get("beat"), (int, float))] +
-                    [c.get("beat") for d in preprocessed_chart for c in d.get("connections", []) if isinstance(c.get("beat"), (int, float))])
+        beat_line: list[Optional[float]] = [d.get("beat") for d in preprocessed_chart if isinstance(d.get("beat", None), (int, float))]
+        beat_line += [c.get("beat") for d in preprocessed_chart for c in d.get("connections", []) if isinstance(c.get("beat"), (int, float))]
+        max_beat = max(beat for beat in beat_line if beat is not None)
 
         data = next((d for d in preprocessed_chart if d.get("beat") == max_beat or any(c.get("beat") == max_beat for c in d.get("connections", []))), None)
+        if data is None:
+            raise ValueError("Failed to get the last note.")
         # 最后一个note
 
         if data["type"] == "BPM" or data["type"] == "Single" or data["type"] == "Directional":
@@ -293,19 +350,55 @@ class Utils:
 
         return int((min_height // self.slice_height + 1) * self.slice_height)
 
-    def get_bpm_data(self, chart: dict):
+    def get_bpm_data(self, chart: _ChartType) -> list[dict[str, Any]]:
         '''获取BPM数据，用于绘制BPM文本'''
         bpm_data = []
-        for data in chart:
-            if data["type"] == "BPM":
+        for note in chart:
+            if note["type"] == "BPM":
                 bpm_data.append({
-                    "bpm": data["bpm"],
-                    "pixel": data["pixel"],
-                    "beat": data["beat"]
+                    "bpm": note["bpm"],
+                    "pixel": note["pixel"],
+                    "beat": note["beat"]
                 })
         return bpm_data
 
-    def draw_measure_lines(self, bpm_data: dict, draw: ImageDraw.ImageDraw, width: int, height: int):
+    def get_beat_data(self, chart: _ChartType) -> list[dict[str, Any]]:
+        '''获取节奏间隔数据，用于绘制节奏间隔文本'''
+        beat_data = []
+        
+        # 将谱面按照 beat 排序
+        _chart = self._fix_beats_data(chart)
+        
+        beat_now = 0
+        type_now = ''
+        index_now = 0
+        for note in _chart:
+            if (beat := note.get('beat', None)) is not None:
+                if beat != beat_now:
+                    interval = Fraction.from_float(beat_now - beat).limit_denominator()
+                    type_now = note['type']
+                    index_now += 1
+                    if note['type'] == 'Connection':
+                        beat_data.append({
+                            "interval": '0',
+                            "pixel": note["pixel"],
+                            "beat": beat
+                        })
+                    else:
+                        beat_now = beat
+                        beat_data.append({
+                            "interval": interval,
+                            "pixel": note["pixel"],
+                            "beat": beat
+                        })
+                
+                else:
+                    if type_now == 'Connection' and note['type'] != 'Connection':
+                        beat_data[index_now - 1]['interval'] = Fraction.from_float(beat_now - beat).limit_denominator()
+        
+        return beat_data
+    
+    def draw_measure_lines(self, bpm_data: list[dict[str, Any]], draw: ImageDraw.ImageDraw, width: int, height: int) -> None:
         '''绘制小节线'''
         bpm_data = sorted(bpm_data, key=lambda x: x.get("beat", float('inf'))) # 按beat排序
         for idx, data in enumerate(bpm_data):
@@ -325,7 +418,7 @@ class Utils:
                     draw.rectangle((self.x_sep + self.frame_width, y1, width - self.frame_width - self.x_sep, y2), self.bpm_line_color if i != 0 else self.bpm_line_light_color)
                     y += pixel_per_beat   
 
-    def draw_double_tap_lines(self, simplified_chart: dict, draw: ImageDraw.ImageDraw, height):
+    def draw_double_tap_lines(self, simplified_chart: _ChartType, draw: ImageDraw.ImageDraw, height: int) -> None:
         '''绘制双押线'''
         for data_x in simplified_chart:
             for data_y in simplified_chart:
@@ -335,7 +428,7 @@ class Utils:
                     if x1 < x2 and y1 < y2:
                         draw.rectangle((self.x_sep + x1, y1, self.x_sep + x2, y2), self.double_beat_line_color)
 
-    def draw_notes(self, chart: dict, chart_img: Image.Image, height: int):
+    def draw_notes(self, chart: _ChartType, chart_img: Image.Image, height: int) -> None:
         '''绘制note'''
         for data in chart:
             if data.get("hidden", False) is True:
@@ -407,12 +500,35 @@ class Utils:
                             elif note_type == "flick":
                                 chart_img.paste(self.skin[note_type], (self.x_sep + self.x_offset + int(self.frame_width + (data_c["lane"] + 0.5) * self.lane_width - self.skin[note_type].width // 2) - self.sep_line_width, height - (data_c["pixel"] + self.skin[note_type].height // 2) - self.flick_offset), self.skin[note_type])
 
-    def draw_bpm_texts(self, bpm_data: dict, draw: ImageDraw.ImageDraw, width: int, height: int):
+    def draw_bpm_texts(self, bpm_data: list[dict[str, Any]], draw: ImageDraw.ImageDraw, width: int, height: int) -> None:
         '''绘制BPM'''
         for idx, data in enumerate(bpm_data):
             x = width - self.x_sep
             y = int(height - data["pixel"] - (self.font.getbbox("114514")[3] if idx == 0 else self.font.getbbox("114514")[3] / 2))
             draw.text((x, y), str(data["bpm"]), self.bpm_text_color, self.font)
+    
+    def draw_beat_texts(self, beat_data: list[dict[str, Any]], draw: ImageDraw.ImageDraw, width: int, height: int) -> None:
+        '''绘制节奏间隔'''
+        for idx, data in enumerate(beat_data):
+            x = self.x_sep
+            y = int(height - data["pixel"] - (self.font.getbbox("114514")[3] if idx == 0 else self.font.getbbox("114514")[3]))
+            if data["interval"] != '0':
+                if len(splits := str(data['interval']).split('/')) < 2:
+                    interval = '/1'
+                else:
+                    if splits[0] == '1':
+                        interval = f'/{splits[1]}'
+                    else:
+                        if abs(int(splits[0])) < int(splits[1]):
+                            interval = f'{splits[0]}/{splits[1]}'
+                        else:
+                            interval = f'/{splits[1]}'
+                draw.text((x, y - 5), interval, self.bpm_text_color, self.font, 'ra')
+                text_bbox = draw.textbbox((x, y), interval, self.font, 'ra')
+                draw.line((text_bbox[0], text_bbox[3], text_bbox[2], text_bbox[3]), self.bpm_text_color, self.bpm_line_width)
+            else:
+                text_bbox = draw.textbbox((x, y), '0', self.font, 'ra')
+                draw.line((text_bbox[0], text_bbox[3], text_bbox[2], text_bbox[3]), self.bpm_text_color, self.bpm_line_width)
 
     def draw_time_texts(self, draw: ImageDraw.ImageDraw, height: int):
         '''绘制时间信息'''
@@ -426,7 +542,7 @@ class Utils:
             y = int(height - i - (self.font.getbbox(text)[3] if i == 0 else self.font.getbbox(text)[3] / 2))
             draw.text((x, y), text, self.time_text_color, self.font)
 
-    def draw_note_num(self, draw: ImageDraw.ImageDraw, width: int, height: int, chart: list):
+    def draw_note_num(self, draw: ImageDraw.ImageDraw, width: int, height: int, chart: _ChartType) -> None:
         '''绘制物量信息'''
         simplified_chart = self._get_tapable_notes_data(chart)
         simplified_chart = sorted(simplified_chart, key=lambda x: x.get("beat", float('inf')))

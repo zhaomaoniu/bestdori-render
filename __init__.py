@@ -1,45 +1,48 @@
-import json
-
 from PIL import Image, ImageDraw
+from bestdori.charts import Chart
 
-from utils import utils
+from _utils import utils
+import config as config
 from config import *
 
 
-def render(data: dict) -> Image.Image:
+def render(chart: Chart) -> Image.Image:
     '''
     渲染BanG Dream谱面
-    
-    `data`: Bestdori谱面数据
-    '''
-    chart = utils.preprocess_chart(data)
-    height = utils.get_height(chart)
-    chart_img, lane_range = utils.get_lanes(height, chart)
 
-    chart = utils.corrent_chart(chart, lane_range)
-    simplified_chart = utils.simplify_chart(chart)
+    参数:
+        chart: 谱面对象 `bestdori.charts.Chart`
+    '''
+    chart_data = chart.to_list()
+    chart_data = utils.preprocess_chart(chart_data)
+    height = utils.get_height(chart_data)
+    chart_img, lane_range = utils.get_lanes(height, chart_data)
+
+    chart_data = utils.corrent_chart(chart_data, lane_range)
+    simplified_chart = utils.simplify_chart(chart_data)
 
     draw = ImageDraw.Draw(chart_img)
 
-    bpm_data = utils.get_bpm_data(chart)
+    bpm_data = utils.get_bpm_data(chart_data)
+    beat_data = utils.get_beat_data(chart_data)
 
     utils.draw_measure_lines(bpm_data, draw, chart_img.width, height)
     utils.draw_double_tap_lines(simplified_chart, draw, height)
-    utils.draw_notes(chart, chart_img, height)
+    utils.draw_notes(chart_data, chart_img, height)
 
     utils.draw_bpm_texts(bpm_data, draw, chart_img.width, height)
+    utils.draw_beat_texts(beat_data, draw, chart_img.width, height)
     utils.draw_time_texts(draw, height)
-    utils.draw_note_num(draw, chart_img.width, height, chart)
+    utils.draw_note_num(draw, chart_img.width, height, chart_data)
 
     result = utils.process_image(chart_img)
-    result = result.resize((int(result.width / result.height * EXPECT_HEIGHT), EXPECT_HEIGHT))
+    result = result.resize((int(result.width / result.height * expect_height), expect_height))
 
-    bg = Image.new("RGBA", result.size, BG_COLOR)
+    bg = Image.new("RGBA", result.size, bg_color)
 
     return utils.paste(bg, result, (0, 0))
 
-
-with open("expert.json", "r", encoding="UTF-8") as f:
-    data = json.load(f)
-
-render(data).save("temp.png")
+__all__ = [
+    'render',
+    'config'
+]
