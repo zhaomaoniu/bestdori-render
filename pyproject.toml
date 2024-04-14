@@ -1,6 +1,6 @@
 [project]
 name = "bestdori-render"
-version = "0.1.0"
+version = "0.1.1"
 description = "Bestdori 谱面渲染工具"
 authors = [
     {name = "zhaomaoniu", email = "2667292003@qq.com"},
