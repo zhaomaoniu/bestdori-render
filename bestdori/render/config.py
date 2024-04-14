@@ -1,6 +1,7 @@
 from PIL import ImageFont
-from typing import Tuple, Optional, TypedDict
+from typing import Tuple, Optional
 
+import pkg_resources
 
 expect_height: int = 1500
 """期望图像高度"""
@@ -20,7 +21,7 @@ frame_width: int = 16
 """轨道边框宽度"""
 sep_line_width: int = 4
 """轨道分割线宽度"""
-line_width: int = 50
+lane_width: int = 50
 """轨道间距"""
 lane_range: Tuple[Optional[int], Optional[int]] = (None, None)
 """
@@ -36,8 +37,19 @@ lane_num: Optional[int] = None
 """
 
 # 字体设置
-font: ImageFont.FreeTypeFont = ImageFont.truetype("fonts/TT-Shin Go M.ttf", size=24)
+font_file: str = ""
 """绘制BPM和时长的字体"""
+
+_font: Optional[ImageFont.FreeTypeFont] = None
+def font() -> ImageFont.FreeTypeFont:
+    global _font
+    if _font is None:
+        if font_file == "":
+            _file = pkg_resources.resource_filename(__name__, "resources/fonts/TT-Shin Go M.ttf")
+            _font = ImageFont.truetype(_file, 24)
+        else:
+            _font = ImageFont.truetype(font_file, 24)
+    return _font
 
 # 颜色设置
 frame_color: Tuple[int, int, int, int] = (0, 77, 77, 255)
@@ -85,69 +97,3 @@ double_beat_line_width: int = 2
 """双押线的宽度"""
 bpm_line_width: int = 2
 """小节线的宽度"""
-
-
-class Config(TypedDict):
-    expect_height: int
-    bg_color: Tuple[int, int, int]
-    slice_height: int
-    x_sep: int
-    frame_width: int
-    sep_line_width: int
-    line_width: int
-    lane_range: Tuple[Optional[int], Optional[int]]
-    lane_num: Optional[int]
-    font: ImageFont.FreeTypeFont
-    frame_color: Tuple[int, int, int, int]
-    sep_line_color: Tuple[int, int, int, int]
-    double_beat_line_color: Tuple[int, int, int]
-    bpm_line_light_color: Tuple[int, int, int, int]
-    bpm_line_color: Tuple[int, int, int, int]
-    bpm_text_color: Tuple[int, int, int]
-    time_text_color: Tuple[int, int, int]
-    note_num_color: Tuple[int, int, int]
-    color_light_value: int
-    x_offset: int
-    pps: int
-    skin: str
-    blue_white_tap: bool
-    flick_offset: int
-    directional_offset: int
-    directional_arrow_offset: int
-    note_size: Tuple[int, int]
-    double_beat_line_width: int
-    bpm_line_width: int
-
-
-def get_config() -> Config:
-    return Config(
-        expect_height=expect_height,
-        bg_color=bg_color,
-        slice_height=slice_height,
-        x_sep=x_sep,
-        frame_width=frame_width,
-        sep_line_width=sep_line_width,
-        line_width=line_width,
-        lane_range=lane_range,
-        lane_num=lane_num,
-        font=font,
-        frame_color=frame_color,
-        sep_line_color=sep_line_color,
-        double_beat_line_color=double_beat_line_color,
-        bpm_line_light_color=bpm_line_light_color,
-        bpm_line_color=bpm_line_color,
-        bpm_text_color=bpm_text_color,
-        time_text_color=time_text_color,
-        note_num_color=note_num_color,
-        color_light_value=color_light_value,
-        x_offset=x_offset,
-        pps=pps,
-        skin=skin,
-        blue_white_tap=blue_white_tap,
-        flick_offset=flick_offset,
-        directional_offset=directional_offset,
-        directional_arrow_offset=directional_arrow_offset,
-        note_size=note_size,
-        double_beat_line_width=double_beat_line_width,
-        bpm_line_width=bpm_line_width,
-    )
