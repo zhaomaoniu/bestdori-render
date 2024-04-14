@@ -1,18 +1,19 @@
 from PIL import Image, ImageDraw
 from bestdori.charts import Chart
 
-from _utils import utils
-import config as config
-from config import *
+from ._utils import Utils
+from .config import Config, get_config
 
 
-def render(chart: Chart) -> Image.Image:
-    '''
+def render(chart: Chart, config: Config = get_config()) -> Image.Image:
+    """
     渲染BanG Dream谱面
 
     参数:
         chart: 谱面对象 `bestdori.charts.Chart`
-    '''
+    """
+    utils = Utils(config)
+
     chart_data = chart.to_list()
     chart_data = utils.preprocess_chart(chart_data)
     height = utils.get_height(chart_data)
@@ -36,13 +37,16 @@ def render(chart: Chart) -> Image.Image:
     utils.draw_note_num(draw, chart_img.width, height, chart_data)
 
     result = utils.process_image(chart_img)
-    result = result.resize((int(result.width / result.height * expect_height), expect_height))
+    result = result.resize(
+        (
+            int(result.width / result.height * config["expect_height"]),
+            config["expect_height"],
+        )
+    )
 
-    bg = Image.new("RGBA", result.size, bg_color)
+    bg = Image.new("RGBA", result.size, config["bg_color"])
 
     return utils.paste(bg, result, (0, 0))
 
-__all__ = [
-    'render',
-    'config'
-]
+
+__all__ = ["render", "config"]

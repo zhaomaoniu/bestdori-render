@@ -1,0 +1,22 @@
+[project]
+name = "bestdori-render"
+version = "0.1.0"
+description = "Bestdori 谱面渲染工具"
+authors = [
+    {name = "zhaomaoniu", email = "2667292003@qq.com"},
+]
+dependencies = [
+    "bestdori-api>=0.0.19",
+    "Pillow>=10.3.0",
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true

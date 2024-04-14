@@ -1,56 +1,62 @@
+from pathlib import Path
 from fractions import Fraction
+from PIL import Image, ImageDraw
 from typing import Any, Tuple, Optional, TypeAlias
 
-from PIL import Image, ImageDraw
+from .config import Config, get_config
 
-from config import *
+
+base_dir = Path(__file__).parent.absolute()
+
 
 _NoteType: TypeAlias = dict[str, Any]
 _ChartType: TypeAlias = list[_NoteType]
 
 class Utils:
-    def __init__(self) -> None:
-        self.frame_color = frame_color
-        self.frame_width = frame_width
-        self.sep_line_color = sep_line_color
-        self.sep_line_width = sep_line_width
-        self.color_light_value = color_light_value
-        self.lane_width = line_width
-        self.pps = pps
-        self.note_size = note_size
-        self.bpm_line_width = bpm_line_width
-        self.bpm_line_color = bpm_line_color
-        self.bpm_line_light_color = bpm_line_light_color
-        self.x_offset = x_offset
-        self.x_sep = x_sep * 2
-        self.double_beat_line_color = double_beat_line_color
-        self.double_beat_line_width = double_beat_line_width
-        self.font = font
-        self.bpm_text_color = bpm_text_color
-        self.time_text_color = time_text_color
-        self.flick_offset = flick_offset
-        self.slice_height = slice_height
-        self.directional_offset = directional_offset
-        self.directional_arrow_offset = directional_arrow_offset
-        self.bg_color = bg_color
-        self.note_num_color = note_num_color
-        self.blue_white_tap = blue_white_tap
-        self.lane_num = lane_num
-        self.lane_range = lane_range
+    def __init__(self, config: Config = get_config()) -> None:
+        self.frame_color = config["frame_color"]
+        self.frame_width = config["frame_width"]
+        self.sep_line_color = config["sep_line_color"]
+        self.sep_line_width = config["sep_line_width"]
+        self.color_light_value = config["color_light_value"]
+        self.lane_width = config["lane_width"]
+        self.pps = config["pps"]
+        self.note_size = config["note_size"]
+        self.bpm_line_width = config["bpm_line_width"]
+        self.bpm_line_color = config["bpm_line_color"]
+        self.bpm_line_light_color = config["bpm_line_light_color"]
+        self.x_offset = config["x_offset"]
+        self.x_sep = config["x_sep"] * 2
+        self.double_beat_line_color = config["double_beat_line_color"]
+        self.double_beat_line_width = config["double_beat_line_width"]
+        self.font = config["font"]
+        self.bpm_text_color = config["bpm_text_color"]
+        self.time_text_color = config["time_text_color"]
+        self.flick_offset = config["flick_offset"]
+        self.slice_height = config["slice_height"]
+        self.directional_offset = config["directional_offset"]
+        self.directional_arrow_offset = config["directional_arrow_offset"]
+        self.bg_color = config["bg_color"]
+        self.note_num_color = config["note_num_color"]
+        self.blue_white_tap = config["blue_white_tap"]
+        self.lane_num = config["lane_num"]
+        self.lane_range = config["lane_range"]
 
-        flick = Image.open(f"resources/{skin}/flick.png")
-        left = Image.open(f"resources/{skin}/left.png")
-        right = Image.open(f"resources/{skin}/right.png")
-        left_arrow = Image.open(f"resources/{skin}/left_arrow.png")
-        right_arrow = Image.open(f"resources/{skin}/right_arrow.png")
+        skin = config["skin"]
+
+        flick = Image.open(base_dir / f"resources/{skin}/flick.png")
+        left = Image.open(base_dir / f"resources/{skin}/left.png")
+        right = Image.open(base_dir / f"resources/{skin}/right.png")
+        left_arrow = Image.open(base_dir / f"resources/{skin}/left_arrow.png")
+        right_arrow = Image.open(base_dir / f"resources/{skin}/right_arrow.png")
         self.skin = {
             'flick' : flick.convert("RGBA").resize((self.note_size[0], int(flick.height / flick.width * self.note_size[0])), Image.Resampling.BICUBIC),
-            'tap' : Image.open(f"resources/{skin}/tap.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'tap_white' : Image.open(f"resources/{skin}/tap_white.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'tap_skill' : Image.open(f"resources/{skin}/tap_skill.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'slide' : Image.open(f"resources/{skin}/slide.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'sep': Image.open(f"resources/{skin}/sep.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
-            'long': Image.open(f"resources/{skin}/long.png").convert("RGBA").resize((self.note_size[0], 1), Image.Resampling.BICUBIC),
+            'tap' : Image.open(base_dir / f"resources/{skin}/tap.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'tap_white' : Image.open(base_dir / f"resources/{skin}/tap_white.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'tap_skill' : Image.open(base_dir / f"resources/{skin}/tap_skill.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'slide' : Image.open(base_dir / f"resources/{skin}/slide.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'sep': Image.open(base_dir / f"resources/{skin}/sep.png").convert("RGBA").resize(self.note_size, Image.Resampling.BICUBIC),
+            'long': Image.open(base_dir / f"resources/{skin}/long.png").convert("RGBA").resize((self.note_size[0], 1), Image.Resampling.BICUBIC),
             'left': left.convert("RGBA").resize((self.note_size[0], int(left.height / left.width * self.note_size[0])), Image.Resampling.BICUBIC),
             'right': right.convert("RGBA").resize((self.note_size[0], int(right.height / right.width * self.note_size[0])), Image.Resampling.BICUBIC),
             'left_arrow': left_arrow.convert("RGBA").resize((int(left_arrow.width / left_arrow.height * (left.height / left.width * self.note_size[0])), int(left.height / left.width * self.note_size[0])), Image.Resampling.BICUBIC),
@@ -402,7 +408,7 @@ class Utils:
         '''绘制小节线'''
         bpm_data = sorted(bpm_data, key=lambda x: x.get("beat", float('inf'))) # 按beat排序
         for idx, data in enumerate(bpm_data):
-            pixel_per_beat = utils.get_second(data["bpm"], 1) * self.pps
+            pixel_per_beat = self.get_second(data["bpm"], 1) * self.pps
             y = data["pixel"]
             length = bpm_data[idx + 1]["pixel"] - data["pixel"] if idx + 1 != len(bpm_data) else height - data["pixel"]
             if int(length / pixel_per_beat) + 1 > 0: # 属于该BPM范围的拍数 > 0
@@ -575,5 +581,3 @@ class Utils:
             combined_image = self.paste(combined_image, slice_image, (x_offset, 0))
 
         return combined_image
-    
-utils = Utils()
