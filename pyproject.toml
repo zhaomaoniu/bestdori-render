@@ -17,6 +17,8 @@ license = {text = "MIT"}
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[tool.pdm.build]
+includes = ["bestdori"]
 
 [tool.pdm]
 distribution = true

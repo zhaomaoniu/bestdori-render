@@ -49,4 +49,4 @@ def render(chart: Chart, config: Config = get_config()) -> Image.Image:
     return utils.paste(bg, result, (0, 0))
 
 
-__all__ = ["render", "config"]
+__all__ = ["render"]
