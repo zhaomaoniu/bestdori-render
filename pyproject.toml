@@ -20,5 +20,8 @@ build-backend = "pdm.backend"
 [tool.pdm.build]
 includes = ["bestdori"]
 
+[tool.poetry]
+include = ["bestdori/render/resources/*"]
+
 [tool.pdm]
 distribution = true
