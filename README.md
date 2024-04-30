@@ -1,10 +1,10 @@
-# BanGDreamChartRender
+# Bestdori-Render
 
-_⭐  使用 Python 编写的 BanGDream 谱面渲染工具  ⭐_
+_⭐  使用 Python 编写的 Bestdori 谱面渲染工具  ⭐_
 
 
 ## 功能性
-BanGDreamChartRender 支持负BPM，几乎所有轨道数量，SP绿条绘制，节奏的色觉辅助等众多功能
+支持负BPM，几乎所有轨道数量，SP绿条绘制，节奏的色觉辅助等众多功能
 
 ## 配置
 | 参数名 | 类型 | 默认值 | 描述 |
@@ -42,7 +42,7 @@ BanGDreamChartRender 支持负BPM，几乎所有轨道数量，SP绿条绘制，
 ## 使用
 ```python
 import requests
-from BanGDreamChartRender import render
+from bestdori.render import render
 
 url = "https://bestdori.com/api/post/details?id=101566"
 response = requests.get(url)
@@ -51,7 +51,7 @@ data = response.json()
 chart_img = render(data["post"]["chart"])
 # `chart_img` 为 `PIL.Image.Image`
 chart_img.show()
-chart_img.save("101566")
+chart_img.save("101566.png")
 ```
 
 ## 皮肤
