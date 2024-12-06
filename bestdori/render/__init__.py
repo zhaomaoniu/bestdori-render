@@ -1,18 +1,22 @@
 from PIL import Image, ImageDraw
 from bestdori.charts import Chart
+from typing import Union, List, Dict, Any
 
 from . import _utils as utils
 from . import config
 
 
-def render(chart: Chart) -> Image.Image:
+def render(chart: Union[Chart, List[Dict[str, Any]]]) -> Image.Image:
+    """Render BanG Dream chart
+    
+    Args:
+        chart: Chart object `bestdori.charts.Chart` or chart data
+    
+    Returns:
+        Image: Rendered BanG Dream chart
     """
-    渲染BanG Dream谱面
 
-    参数:
-        chart: 谱面对象 `bestdori.charts.Chart`
-    """
-    chart_data = chart.to_list()
+    chart_data = chart.to_list() if isinstance(chart, Chart) else chart
     chart_data = utils.preprocess_chart(chart_data)
     height = utils.get_height(chart_data)
     chart_img, lane_range = utils.get_lanes(height, chart_data)
