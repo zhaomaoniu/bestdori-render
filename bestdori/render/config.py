@@ -41,15 +41,20 @@ font_file: str = ""
 """绘制BPM和时长的字体"""
 
 _font: Optional[ImageFont.FreeTypeFont] = None
+
+
 def font() -> ImageFont.FreeTypeFont:
     global _font
     if _font is None:
         if font_file == "":
-            _file = pkg_resources.resource_filename(__name__, "resources/fonts/TT-Shin Go M.ttf")
+            _file = pkg_resources.resource_filename(
+                __name__, "resources/fonts/TT-Shin Go M.ttf"
+            )
             _font = ImageFont.truetype(_file, 24)
         else:
             _font = ImageFont.truetype(font_file, 24)
     return _font
+
 
 # 颜色设置
 frame_color: Tuple[int, int, int, int] = (0, 77, 77, 255)
